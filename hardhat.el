@@ -213,14 +213,16 @@ lighter for `hardhat-mode'."
 (defcustom hardhat-bof-content-bound 250
   "How far from the start to search for regexps in content.
 
-See `hardhat-bof-content-protected-regexps' and `hardhat-bof-content-editable-regexps'."
+See `hardhat-bof-content-protected-regexps' and
+`hardhat-bof-content-editable-regexps'."
   :type 'integer
   :group 'hardhat)
 
 (defcustom hardhat-eof-content-bound 250
   "How far from the end to search for regexps in content.
 
-See `hardhat-eof-content-protected-regexps' and `hardhat-eof-content-editable-regexps'."
+See `hardhat-eof-content-protected-regexps' and
+`hardhat-eof-content-editable-regexps'."
   :type 'integer
   :group 'hardhat)
 
@@ -450,7 +452,7 @@ All patterns are case-insensitive."
 ;; todo @@@ more editable exceptions needed here
 (defcustom hardhat-fullpath-editable-regexps '(
                                                "~/\\.cpan/CPAN/MyConfig\\.pm\\'"
-                                               "/\\.git/\\(?:.+/\\)?\\(?:COMMIT_EDITMSG\\|MERGE_MSG\\|SQUASH_MSG\\|TAG_EDITMSG\\|BRANCH_DESCRIPTION\\|rebase-merge/git-rebase-todo\\|description\\|info/\\|hooks/\\|config\\|GHI_ISSUE\\)\\'"
+                                               "/\\.git/\\(?:.+/\\)?\\(?:new-pullreq\\|new-issue\\|COMMIT_EDITMSG\\|MERGE_MSG\\|SQUASH_MSG\\|TAG_EDITMSG\\|BRANCH_DESCRIPTION\\|rebase-merge/git-rebase-todo\\|description\\|info/\\|hooks/\\|config\\|GHI_ISSUE\\)\\'"
                                                ;; "~/\\.cabal/"
                                                ;; "~/perl5/perlbrew/"
                                                ;; "~/\\.npm/"
@@ -559,25 +561,6 @@ in GNU Emacs 24.1 or higher."
     (t
      '(called-interactively-p))))
 
-;;; compatibility functions
-
-(unless (fboundp 'string-match-p)
-  ;; added in 23.x
-  (defun string-match-p (regexp string &optional start)
-    "Same as `string-match' except this function does not change the match data."
-    (let ((inhibit-changing-match-data t))
-      (string-match regexp string start))))
-
-(unless (fboundp 'with-demoted-errors)
-  ;; added in 23.x
-  (defmacro with-demoted-errors (&rest body)
-  "Run BODY and demote any errors to simple messages."
-  (declare (debug t) (indent 0))
-  (let ((err (make-symbol "err")))
-    `(condition-case ,err
-         (progn ,@body)
-       (error (message "Error: %S" ,err) nil)))))
-
 ;;; utility functions
 
 (defun hardhat--propertize-lighter ()
@@ -642,7 +625,7 @@ that the connection to the remote host is lost.
 This is a safer wrapper which employs `file-truename' for local
 files only.  For remote files, the following is used
 
-    (file-remote-p FILENAME 'localname)
+    (file-remote-p FILENAME \\='localname)
 
 which, though *not* equivalent to `file-truename', is better than
 a wedge.
@@ -681,7 +664,8 @@ associated with BUF for the purpose of optimization."
                                  (eq major-mode (car cell)))
                             (cdr cell)))))
                (when (and (fboundp test)
-                          (with-demoted-errors (funcall test buf file)))
+                          (with-demoted-errors "Failed function criterion: %s"
+                            (funcall test buf file)))
                  (throw 'hit test))))))
         (t
          (hardhat-compute-regexps)
@@ -831,7 +815,7 @@ if the argument is positive and otherwise disables the mode.
 
 When called from Lisp, this command enables the mode if the
 argument is omitted or nil, and toggles the mode if the argument
-is 'toggle."
+is \\='toggle."
   :group 'hardhat
   (cond
     (hardhat-mode
@@ -1003,7 +987,7 @@ Any arguments are ignored."
 
 Any arguments are ignored."
   (when global-hardhat-mode
-    (with-demoted-errors
+    (with-demoted-errors "Failed to enable hardhat: %s"
       (hardhat-maybe-turn-on))))
 
 ;;; interactive commands
